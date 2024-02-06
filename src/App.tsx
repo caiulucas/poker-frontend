@@ -84,10 +84,18 @@ function App() {
 					alert(
 						`O jogador ${data.winner.winner._id} ganhou com um ${data.winner.type} o valor de ${data.winner.pot} fichas`,
 					);
-					// setPlayers(data.players);
-					// setHasStarted(data.hasStarted);
-					// setMinBet(data.minBet);
-					// setFlop(data.flop);
+					setPlayers(data.players);
+					if (player) {
+						setPlayer(
+							data.winner.winner._id === player.id
+								? { ...player, chips: data.winner.pot + player?.chips }
+								: player,
+						);
+					}
+					setHasStarted(data.hasStarted);
+					setMinBet(data.minBet);
+					setPot(0);
+					setFlop(data.flop);
 					break;
 				case "bet":
 					setCurrentPlayerId(data.currentPlayer._id);

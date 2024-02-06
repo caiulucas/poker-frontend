@@ -1,5 +1,6 @@
-import { useCallback, useState } from "react";
-import flipMp3 from "../assets/flip.mp3";
+import { useCallback, useEffect, useRef, useState } from "react";
+import checkMp3 from "../assets/check.mp3";
+import chipsMp3 from "../assets/chips.mp3";
 import { cards } from "../utils/cards";
 
 type Card = keyof typeof cards;
@@ -21,6 +22,9 @@ export function Hand({
 	chips,
 	minBet,
 }: HandProps) {
+	const chipsAudioRef = useRef<HTMLAudioElement | null>(null);
+	const checkAudioRef = useRef<HTMLAudioElement | null>(null);
+
 	const [bet, setBet] = useState(minBet);
 
 	const handleCheck = useCallback(() => {
@@ -30,6 +34,8 @@ export function Hand({
 				playerId: playerId,
 			}),
 		);
+
+		checkAudioRef.current?.play();
 	}, [socket, playerId]);
 
 	const handleBet = useCallback(() => {
@@ -40,6 +46,8 @@ export function Hand({
 				value: bet,
 			}),
 		);
+
+		chipsAudioRef.current?.play();
 	}, [socket, playerId, bet]);
 
 	const handleFold = useCallback(() => {
@@ -51,9 +59,24 @@ export function Hand({
 		);
 	}, [socket, playerId]);
 
+	const handleRaiseBet = useCallback(() => {
+		setBet((state) => (state + 50 > chips ? state : state + 50));
+	}, [chips]);
+
+	const handleLowerBet = useCallback(() => {
+		setBet((state) => (state - 50 < minBet ? state : state - 50));
+	}, [minBet]);
+
+	useEffect(() => {
+		setBet(minBet);
+	}, [minBet]);
+
 	return (
 		<div>
-			<audio className= src={flipMp3} />
+			{/* biome-ignore lint/a11y/useMediaCaption: <explanation> */}
+			<audio className="invisible" src={chipsMp3} ref={chipsAudioRef} />
+			{/* biome-ignore lint/a11y/useMediaCaption: <explanation> */}
+			<audio className="invisible" src={checkMp3} ref={checkAudioRef} />
 			<div className="flex gap-2 h-72">
 				{hand.map((card) => (
 					<img
@@ -78,15 +101,41 @@ export function Hand({
 				>
 					<strong>Check</strong>
 				</button>
-				<input
-					type="number"
-					name="bet"
-					id="bet"
-					min={minBet}
-					max={chips}
-					value={bet}
-					onChange={(e) => setBet(Number(e.target.value))}
-				/>
+				<div className="flex gap-1">
+					<input
+						className="rounded-md p-1"
+						type="number"
+						name="bet"
+						id="bet"
+						disabled={true}
+						min={minBet}
+						max={chips}
+						value={bet}
+						onChange={(e) => setBet(Number(e.target.value))}
+					/>
+					<div className="flex gap-1">
+						<button
+							disabled={bet >= chips}
+							className={`flex-1 ${
+								bet >= chips ? "bg-orange-700" : "bg-orange-500"
+							}`}
+							type="button"
+							onClick={handleRaiseBet}
+						>
+							+
+						</button>
+						<button
+							disabled={bet <= minBet}
+							className={`flex-1 ${
+								bet <= minBet ? "bg-orange-700" : "bg-orange-500"
+							}`}
+							type="button"
+							onClick={handleLowerBet}
+						>
+							-
+						</button>
+					</div>
+				</div>
 				<button
 					disabled={playerId !== currentPlayerId || minBet > chips}
 					type="button"
