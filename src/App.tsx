@@ -37,7 +37,7 @@ function App() {
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
-		setSocket(new WebSocket("ws://localhost:3333"));
+		setSocket(new WebSocket("ws://192.168.0.177:8080"));
 
 		return () => {
 			if (socket) {
